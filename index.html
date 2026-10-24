@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="description" content="拾句——把你的书籍摘录变成一座每日重读的句子花园。">
+<title>拾句 · 每日一句重读</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f6f1e7">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="拾句">
+<link rel="stylesheet" href="assets/style.css">
+<meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+
+<div class="fx-vig"></div>
+<div class="fx-grain"></div>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <button class="logo" data-act="nav" data-v="home" id="logo-home" title="回到今日" aria-label="拾句，回到今日页面">
+      <span class="seal">拾</span><span class="name">拾句</span>
+    </button>
+    <nav>
+      <button data-act="nav" data-v="home" id="nav-home">今日</button>
+      <button data-act="nav" data-v="roam" id="nav-roam">漫游</button>
+      <button data-act="nav" data-v="notes" id="nav-notes">手记</button>
+      <button data-act="nav" data-v="review" id="nav-review">复核</button>
+      <button data-act="nav" data-v="books" id="nav-books">书目</button>
+    </nav>
+    <div class="topnav-right">
+      <span class="stamp">日拱一句</span>
+      <button class="gear" data-act="settings" title="设置与数据">≡</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="view"></main>
+
+<!-- 手记弹层 -->
+<div class="overlay" id="noteOverlay">
+  <div class="panel">
+    <h3>写一句</h3>
+    <div class="p-anchor" id="npAnchor"></div>
+    <textarea id="npText" placeholder="此刻的想法——一句话也好。它会带着时间戳，钉在这条摘录下面。"></textarea>
+    <div class="p-actions">
+      <button class="btn ghost" data-act="np-cancel">取消</button>
+      <button class="btn primary" data-act="np-save">存入手记</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置弹层 -->
+<div class="overlay" id="setOverlay">
+  <div class="panel">
+    <h3>设置与数据</h3>
+    <div class="set-row set-row-skin">
+      <div class="s-k">页面底色<span class="s-d">四套底色与分享图共用同一组配色，切换后本机记住</span></div>
+      <div class="skins" id="skins">
+        <button class="skin on" data-act="skin" data-k="paper"    title="宣纸"><i style="background:#f6f1e7"></i>宣纸</button>
+        <button class="skin"    data-act="skin" data-k="night"    title="夜墨"><i style="background:#1c1a17"></i>夜墨</button>
+        <button class="skin"    data-act="skin" data-k="celadon"  title="青瓷"><i style="background:#dfe5dd"></i>青瓷</button>
+        <button class="skin"    data-act="skin" data-k="cinnabar" title="朱砂"><i style="background:#8f3820"></i>朱砂</button>
+      </div>
+    </div>
+    <div class="kv" id="setInfo">—</div>
+    <div class="set-row">
+      <div class="s-k">导入摘录数据包<span class="s-d">选择构建生成的 data.local.js，存进本机；此后断网也能读</span></div>
+      <button class="btn" data-act="pack-import">选择文件</button>
+      <input type="file" id="packFile" accept=".js,.json,application/json,text/javascript,application/javascript,application/x-javascript" style="display:none">
+    </div>
+    <div class="set-row">
+      <div class="s-k">云端同步<span class="s-d">粘贴电脑端 push-gitee.js 打印的那行配置（含 owner / repo / branch / dir / token 五个字段），此后打开/回前台自动拉取新数据（需 Gitee 可达）</span></div>
+      <div style="flex:1 1 100%">
+        <textarea id="syncCfg" placeholder="粘贴推送脚本打印的那行 JSON 配置" style="width:100%;min-height:64px;font-size:12.5px;font-family:var(--mono);line-height:1.7;padding:10px 12px;border:1px solid var(--hair);background:var(--paper);color:var(--ink);resize:vertical;border-radius:2px"></textarea>
+        <input id="syncToken" type="password" placeholder="Gitee 私人令牌（建议仅 projects 权限）" autocomplete="off" style="width:100%;margin-top:8px;font-size:12.5px;font-family:var(--mono);padding:9px 12px;border:1px solid var(--hair);background:var(--paper);color:var(--ink);border-radius:2px">
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="btn" data-act="sync-save">保存并测试</button>
+          <button class="btn ghost" data-act="sync-off">停用</button>
+        </div>
+      </div>
+    </div>
+    <div class="set-row">
+      <div class="s-k">清除本机数据包<span class="s-d">移除导入的个人数据，改用页面内置的那份</span></div>
+      <button class="btn ghost" data-act="pack-wipe" id="packWipeBtn">清除</button>
+    </div>
+    <div class="set-row">
+      <div class="s-k">导出手记<span class="s-d">JSON 文件，含每则手记的摘录锚点与时间戳</span></div>
+      <button class="btn" data-act="export">导出</button>
+    </div>
+    <div class="set-row">
+      <div class="s-k">导入手记<span class="s-d">合并导入此前导出的 JSON，重复条目自动跳过</span></div>
+      <button class="btn" data-act="import">选择文件</button>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="set-row">
+      <div class="s-k">清空本机手记<span class="s-d">不可恢复——请先导出备份</span></div>
+      <button class="btn ghost" data-act="wipe" id="wipeBtn">清空</button>
+    </div>
+    <div class="p-actions">
+      <button class="btn ghost" data-act="set-close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- 分享图弹层 -->
+<div class="overlay" id="shOverlay">
+  <div class="panel sh-panel">
+    <h3>存为一张图</h3>
+    <div class="p-sub" id="shDesc">—</div>
+    <div class="sh-styles">
+      <span class="sh-grp-k">版式</span>
+      <div class="sh-swatches">
+        <button class="sh-swatch on" id="fm-portrait"  data-act="sh-format" data-k="portrait"  title="竖版 3:4 · 720×960">竖版</button>
+        <button class="sh-swatch"    id="fm-landscape" data-act="sh-format" data-k="landscape" title="横版 4:3 · 960×720">横版</button>
+      </div>
+    </div>
+    <div class="sh-styles">
+      <span class="sh-grp-k">背景</span>
+      <div class="sh-swatches">
+        <button class="sh-swatch on" id="th-paper"    data-act="sh-theme" data-k="paper"    title="宣纸">宣纸</button>
+        <button class="sh-swatch"    id="th-night"    data-act="sh-theme" data-k="night"    title="夜墨">夜墨</button>
+        <button class="sh-swatch"    id="th-celadon"  data-act="sh-theme" data-k="celadon"  title="青瓷">青瓷</button>
+        <button class="sh-swatch"    id="th-cinnabar" data-act="sh-theme" data-k="cinnabar" title="朱砂">朱砂</button>
+      </div>
+      <span class="sh-hint" id="shHint">—</span>
+    </div>
+    <div class="sh-stage">
+      <div class="sh-canvas-box"><canvas id="shCanvas"></canvas></div>
+    </div>
+    <div class="p-actions">
+      <button class="btn ghost" data-act="sh-close">关闭</button>
+      <button class="btn primary" data-act="sh-save">保存图片</button>
+    </div>
+  </div>
+</div>
+
+<!-- 分享图大屏预览：点预览台的图整屏看，再点任意处返回 -->
+<div class="overlay sh-zoom-overlay" id="shZoomOverlay">
+  <div class="sh-zoom-stage"><canvas id="shZoomCanvas"></canvas></div>
+</div>
+
+<button id="toTop" class="to-top" data-act="totop" title="回到顶端" aria-label="回到顶端"><svg class="tt-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 18V6"/><path d="M6.5 11.5 12 6l5.5 5.5"/></svg></button>
+
+<script src="data/data.js"></script>
+<script src="data.local.js"></script>
+<script src="assets/share.js" defer></script>
+<script src="assets/app.js" defer></script>
+<script>
+/* 注册离线缓存，让页面能装进手机桌面、断网也能打开。
+   用 file:// 双击打开时浏览器不允许注册，静默跳过，网页功能不受影响。 */
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

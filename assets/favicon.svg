@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" fill="#f6f1e7"/>
+  <rect x="5" y="5" width="54" height="54" fill="none" stroke="#963a22" stroke-width="5"/>
+  <rect x="10" y="10" width="44" height="44" fill="none" stroke="rgba(150,58,34,.35)" stroke-width="1.5"/>
+  <text x="32" y="33" text-anchor="middle" dominant-baseline="central"
+        font-family="Songti SC, STSong, SimSun, Noto Serif SC, serif"
+        font-size="38" fill="#963a22">拾</text>
+</svg>
